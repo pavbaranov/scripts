@@ -3,7 +3,6 @@
 polaur_url="https://github.com/polaur"
 feed_URL="https://forum.archlinux.org.pl/extern.php?action=feed&tid=615&type=atom"
 feed_number=8
-#download_path="${HOME}/.cache/polaur"
 download_path="${HOME}/.cache/polaur"
 
 # colors
@@ -21,7 +20,6 @@ error() {
 	echo -e "${RED}$(gettext 'Niepoprawny wybór:')${RESET} $@"
 	echo -e "$(gettext 'Wracam do menu głównego.')"
 	echo -e "-------------------------------\n"
-	#sleep 1 && clear
 	read -rsn 1 -p "$(gettext 'Naciśnij dowolny przycisk, aby kontynuować...')"
 	clear
 }
@@ -45,7 +43,7 @@ show_title() {
 }
 
 show_feed() {
-	curl -s "${feed_URL}" | grep -E "content" | sed -e 's/<br \/>/\\n/g' -e 's/<[^>]*>//g' -e 's/]]>//g' -e 's/\&quot;//g' -e 's/EDIT//g' | sed -r 's/[0-9]{2}.[0-9]{4}/& |/g' | awk '{$1=$1}1' > /tmp/polaur-feed
+	curl -s "${feed_URL}" | grep -E "content" | sed -e 's/<br \/>/\\n/g' -e 's/<[^>]*>//g' -e 's/]]>//g' -e 's/\&quot;//g' -e 's/\&#039;//g' -e 's/EDIT//g' | sed -r 's/[0-9]{2}.[0-9]{4}/& |/g' | awk '{$1=$1}1' > /tmp/polaur-feed
 
 	echo -e "${BOLD}$(gettext 'Najnowsze wiadomości')${RESET}\n"
 	n=1; while IFS= read -r line || [[ "$line" ]]; do
@@ -115,7 +113,7 @@ show_repositories() {
 	curl -s "${polaur_url}" | sed 's/Asset 1//g' > /tmp/polaur
 
 	# put available repos to file
-	cat /tmp/polaur | grep -E 'itemprop="name codeRepository"' | awk -F'"' '{print $2}' | cut -b 9- > /tmp/polaur-repos
+	cat /tmp/polaur | grep -E 'itemprop="name codeRepository"' | awk -F'"' '{print $8}' | cut -b 9- > /tmp/polaur-repos
 
 	# put repos names to array repoNames
 	repoNames=()
@@ -136,7 +134,7 @@ show_repositories() {
 		done
 		echo -e "${YELLOW}q${RESET}. $(gettext 'Zakończ')"
 		read -rsn 1 k
-		#[[ ! "$k" ]] && exit
+		
 		case "$k" in
 			"q")
 				exit ;;
@@ -149,7 +147,7 @@ show_repositories() {
 					echo -e "\n$(gettext 'Naciśnij dowolny przycisk, by powrócić do głównego menu lub')"
 					echo -e "${YELLOW}d${RESET}. $(gettext 'Pobrać wybrane') ${YELLOW}\ta${RESET}. $(gettext 'Pobrać wszystko')\t${YELLOW}q${RESET}. $(gettext 'Zakończ')"
 					read -rsn 1 kk
-					#[[ ! "$kk" ]] && exit
+					
 					echo
 					case "$kk" in
 						"q")
@@ -176,7 +174,7 @@ show_repositories() {
 						"a")
 							[[ ! -e "/usr/bin/svn" ]] && echo -e "\n$(gettext '"svn" nie jest zainstalowane w systemie - pobieram używając "git clone')\n"
 							n=1; while [ $n -le ${#pkgNames[@]} ]; do
-								#echo ${pkgNames[$(( $n-1 ))]}
+								
 								list="$(gettext 'Całość')"
 								download "$n"
 								(( n++ ))
@@ -213,9 +211,7 @@ case "$action" in
 		show_repositories ;;
 	-I|--info)
 		show_feed ;;
-	#--debug)
-	#	download ;;
 	*)
-		error "$1"
+		exit
 esac
 \rm -rf /tmp/polaur*
